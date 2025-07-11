@@ -5,11 +5,14 @@ type RoomParams = {
 }
 
 export const Room = () => {
-  const params = useParams<RoomParams>()
+  const { roomId } = useParams() as RoomParams
 
-  if (!params.roomId) {
+  // biome-ignore lint/suspicious/noConsole: only dev
+  console.log({ roomId })
+
+  if (!roomId) {
     return <Navigate replace to="/" />
   }
 
-  return <div>Room Details {JSON.stringify(params.roomId)}</div>
+  return <div>Room Details {roomId}</div>
 }
