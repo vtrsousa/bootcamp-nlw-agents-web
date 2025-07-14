@@ -15,21 +15,9 @@ export const RecordRoomAudio = () => {
   const params = useParams<RoomParams>()
   const [isRecording, setIsRecording] = useState(false)
   const recorder = useRef<MediaRecorder | null>(null)
+  const intervalRef = useRef<NodeJS.Timeout>(null)
 
-  const startRecording = async () => {
-    if (!isRecordingSupported) {
-      return
-    }
-    setIsRecording(true)
-
-    const audio = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        sampleRate: 44_100,
-      },
-    })
-
+  const createRecorder = (audio: MediaStream) => {
     recorder.current = new MediaRecorder(audio, {
       mimeType: 'audio/webm',
       audioBitsPerSecond: 64_000,
@@ -54,11 +42,38 @@ export const RecordRoomAudio = () => {
     recorder.current.start()
   }
 
+  const startRecording = async () => {
+    if (!isRecordingSupported) {
+      return
+    }
+    setIsRecording(true)
+
+    const audio = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        sampleRate: 44_100,
+      },
+    })
+
+    createRecorder(audio)
+
+    intervalRef.current = setInterval(() => {
+      recorder.current?.stop()
+
+      createRecorder(audio)
+    }, 5000)
+  }
+
   const stopRecording = () => {
     setIsRecording(false)
 
     if (recorder.current && recorder.current.state !== 'inactive') {
       recorder.current.stop()
+    }
+
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
     }
   }
 
@@ -85,12 +100,12 @@ export const RecordRoomAudio = () => {
     <div className="h-screen flex flex-col items-center justify-center gap-3 ">
       {isRecording ? (
         <div className="flex flex-col items-center gap-2">
-          <Button onClick={stopRecording}>Pausar Audio</Button>
+          <Button onClick={stopRecording}>Pausar Áudio</Button>
           <p>Gravando...</p>
         </div>
       ) : (
         <div className="flex flex-col items-center gap-2">
-          <Button onClick={startRecording}>Gravar Audio</Button>
+          <Button onClick={startRecording}>Gravar Áudio</Button>
           <p>Pausado...</p>
         </div>
       )}

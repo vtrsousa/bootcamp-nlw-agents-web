@@ -38,13 +38,14 @@ interface QuestionFormProps {
 export function QuestionForm({ roomId }: QuestionFormProps) {
   const { mutateAsync: createQuestion } = useCreateQustion(roomId)
 
-
   const form = useForm<CreateQuestionFormData>({
     resolver: zodResolver(createQuestionSchema),
     defaultValues: {
       question: '',
     },
   })
+
+  const { isSubmitting } = form.formState;
 
   async function handleCreateQuestion(data: CreateQuestionFormData) {
     await createQuestion(data)
@@ -75,6 +76,7 @@ export function QuestionForm({ roomId }: QuestionFormProps) {
                       className="min-h-[100px]"
                       placeholder="O que você gostaria de saber?"
                       {...field}
+                      disabled={isSubmitting}
                     />
                   </FormControl>
                   <FormMessage />
@@ -82,7 +84,9 @@ export function QuestionForm({ roomId }: QuestionFormProps) {
               )}
             />
 
-            <Button type="submit">Enviar pergunta</Button>
+            <Button disabled={isSubmitting} type="submit">
+              Enviar pergunta
+            </Button>
           </form>
         </Form>
       </CardContent>
